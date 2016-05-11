@@ -31,13 +31,12 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
     private int PreviewSizeHeight;
     private String NowPictureFileName;
     private Boolean TakePicture = false;
-    public static Queue frameQueue = new LinkedList<byte[]>();
+
 
     public CameraPreview(int PreviewlayoutWidth, int PreviewlayoutHeight)
     {
         PreviewSizeWidth = PreviewlayoutWidth;
         PreviewSizeHeight = PreviewlayoutHeight;
-        startProcessing(10, frameQueue);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
 //            {
 //                e.printStackTrace();
 //            }
-            frameQueue.add(img.getYuvData());
+            MyCamera.frameQueue.add(img.getYuvData());
         }
     }
 
@@ -189,10 +188,6 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
         }
     };
 
-    private void startProcessing(long pause, Queue frameQueue){
-        FrameProcessing processFrames = new FrameProcessing(10, frameQueue);
-        Thread t = new Thread(processFrames);
-        t.start();
-    }
+
 
 }
