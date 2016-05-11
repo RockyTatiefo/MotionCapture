@@ -1,5 +1,7 @@
 package com.example.rocky.motioncapture;
 
+import android.util.Log;
+
 import java.util.Queue;
 
 /**
@@ -24,6 +26,7 @@ public class FrameProcessing implements Runnable{
     public void processFrame(byte[] frame){
         //do processing
         try {
+            Log.d("FRAME_CAPTURE", frameQueue.size() + " frames");
             Thread.sleep(pause, 0);
         } catch (InterruptedException e) {
             e.printStackTrace();
