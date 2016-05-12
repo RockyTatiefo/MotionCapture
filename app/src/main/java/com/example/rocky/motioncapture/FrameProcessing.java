@@ -24,7 +24,7 @@ public class FrameProcessing implements Runnable{
 
     public void run() {
         while (true) {
-            if (processingButton.getText() == "Stop Processing" && !frameQueue.isEmpty())
+            if (processingButton.getText().equals("Stop Processing") && !frameQueue.isEmpty())
                 processFrame((byte[]) frameQueue.poll());
             try {
                 Thread.sleep(10, 0);
@@ -37,7 +37,8 @@ public class FrameProcessing implements Runnable{
     public void processFrame(byte[] frame){
         //do processing
         try {
-            Log.d("FRAME_CAPTURE", frameQueue.size() + " frames");
+            if (MyCamera.frameQueue.size() % 20 == 0)
+                Log.d("FRAME_CAPTURE", frameQueue.size() + " frames");
             Thread.sleep(pause, 0);
         } catch (InterruptedException e) {
             e.printStackTrace();

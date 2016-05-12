@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -19,6 +20,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -28,12 +30,13 @@ public class MyCamera extends Activity
 {
     private CameraPreview camPreview;
     private FrameLayout mainLayout;
-    private int PreviewSizeWidth = 640;
+    private int PreviewSizeWidth = 720;
     private int PreviewSizeHeight= 480;
     private CharSequence[] processingText = {"Process", "Stop Processing"};
+    private CharSequence[] startStopText = {"Record","Stop"};
     public static Queue frameQueue = new LinkedList<byte[]>();
 
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    public static Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -59,7 +62,16 @@ public class MyCamera extends Activity
         // first parameter is sleep time in milliseconds between access to Queue
         // second parameter is Queue to process images from
         // third parameter is the button to use to start and stop processing
-        startProcessing(10, frameQueue, (Button) findViewById(R.id.button_processing));
+        startProcessing(50, frameQueue, (Button) findViewById(R.id.button_processing));
+
+        captureSetup();
+
+        findViewById(R.id.imgClose).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.exit(0);
+            }
+        });
     }
 
     @Override
@@ -71,11 +83,31 @@ public class MyCamera extends Activity
             if ( X >= PreviewSizeWidth )
                 mHandler.postDelayed(TakePicture, 300);
             else
-                camPreview.CameraStartAutoFocus();
+            camPreview.CameraStartAutoFocus();
         }
-        Log.d("FRAME_CAPTURE", frameQueue.size() + " frames");
         return true;
-    };
+    }
+
+    private void captureSetup() {
+        final Button startStopButton = (Button) findViewById(R.id.button_capture);
+        if (startStopButton != null) {
+            startStopButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(startStopButton.getText().equals(startStopText[0])) {
+                        startStopButton.setText(startStopText[1]);
+                        long startTime = System.currentTimeMillis();
+                        Log.d("FRAME_CAPTURE", "Frame captured started.");
+                        Toast.makeText(MyCamera.this, "Frame capture started.", Toast.LENGTH_SHORT).show();
+                        CameraPreview.TakePicture = true;
+                    } else {
+                        startStopButton.setText(startStopText[0]);
+                        CameraPreview.TakePicture = false;
+                    }
+                }
+            });
+        }
+    }
 
     private Runnable TakePicture = new Runnable()
     {

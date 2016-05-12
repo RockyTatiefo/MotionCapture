@@ -5,12 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import android.graphics.Bitmap;
@@ -20,6 +22,7 @@ import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
+import android.widget.Toast;
 
 /**
  * Created by V on 5/8/2016.
@@ -30,7 +33,8 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
     private int PreviewSizeWidth;
     private int PreviewSizeHeight;
     private String NowPictureFileName;
-    private Boolean TakePicture = false;
+    public static Boolean TakePicture = false;
+    private YuvImage img = null;
 
 
     public CameraPreview(int PreviewlayoutWidth, int PreviewlayoutHeight)
@@ -48,8 +52,8 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
         int imageFormat = parameters.getPreviewFormat();
         if (imageFormat == ImageFormat.NV21)
         {
-            Rect rect = new Rect(0, 0, PreviewSizeWidth, PreviewSizeHeight);
-            YuvImage img = new YuvImage(arg0, ImageFormat.NV21, PreviewSizeWidth, PreviewSizeHeight, null);
+//            Rect rect = new Rect(0, 0, PreviewSizeWidth, PreviewSizeHeight);
+            img = new YuvImage(arg0, ImageFormat.NV21, PreviewSizeWidth, PreviewSizeHeight, null);
 //            OutputStream outStream = null;
 //            File file = new File(NowPictureFileName);
 //            try
@@ -67,9 +71,20 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
 //            {
 //                e.printStackTrace();
 //            }
-            MyCamera.frameQueue.add(img.getYuvData());
+           if (TakePicture) {
+               MyCamera.frameQueue.add(img.getYuvData());
+               if (MyCamera.frameQueue.size() % 20 == 0)
+                   Log.d("FRAME_CAPTURE", MyCamera.frameQueue.size() + " frames");
+//                try {
+//                    Thread.sleep(10, 0);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+           }
         }
     }
+
+
 
     @Override
     public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3)
@@ -125,7 +140,7 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
     // Take picture interface
     public void CameraTakePicture(String FileName)
     {
-        TakePicture = true;
+//        TakePicture = true;
         NowPictureFileName = FileName;
         mCamera.autoFocus(myAutoFocusCallback);
     }
@@ -133,7 +148,7 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
     // Set auto-focus interface
     public void CameraStartAutoFocus()
     {
-        TakePicture = false;
+//        TakePicture = false;
         mCamera.autoFocus(myAutoFocusCallback);
     }
 
@@ -147,12 +162,12 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
     {
         public void onAutoFocus(boolean arg0, Camera NowCamera)
         {
-            if ( TakePicture )
-            {
-                NowCamera.stopPreview();//fixed for Samsung S2
-                NowCamera.takePicture(shutterCallback, rawPictureCallback, jpegPictureCallback);
-                TakePicture = false;
-            }
+//            if ( TakePicture )
+//            {
+//                NowCamera.stopPreview();//fixed for Samsung S2
+//                NowCamera.takePicture(shutterCallback, rawPictureCallback, jpegPictureCallback);
+//                TakePicture = false;
+//            }
         }
     };
     ShutterCallback shutterCallback = new ShutterCallback()
@@ -167,7 +182,7 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
     {
         public void onPictureTaken(byte[] arg0, Camera arg1)
         {
-            // Just do nothing.
+//            MyCamera.frameQueue.add(arg0);
         }
     };
 
