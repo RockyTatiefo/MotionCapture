@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -52,9 +53,13 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
         int imageFormat = parameters.getPreviewFormat();
         if (imageFormat == ImageFormat.NV21)
         {
-//            Rect rect = new Rect(0, 0, PreviewSizeWidth, PreviewSizeHeight);
+            Rect rect = new Rect(0, 0, PreviewSizeWidth, PreviewSizeHeight);
             img = new YuvImage(arg0, ImageFormat.NV21, PreviewSizeWidth, PreviewSizeHeight, null);
-//            OutputStream outStream = null;
+
+            ByteArrayOutputStream outStr = new ByteArrayOutputStream();
+            img.compressToJpeg(rect, 100, outStr);
+            Bitmap bmp = BitmapFactory.decodeByteArray(outStr.toByteArray(), 0, outStr.size());
+//              OutputStream outStream = null;
 //            File file = new File(NowPictureFileName);
 //            try
 //            {
@@ -72,7 +77,8 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
 //                e.printStackTrace();
 //            }
            if (TakePicture) {
-               MyCamera.frameQueue.add(img.getYuvData());
+               MyCamera.frameQueue.add(bmp);
+               MyCamera.timeStampQueue.add(System.currentTimeMillis() - MyCamera.startTime);
                if (MyCamera.frameQueue.size() % 20 == 0)
                    Log.d("FRAME_CAPTURE", MyCamera.frameQueue.size() + " frames");
 //                try {

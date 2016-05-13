@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.UUID;
@@ -43,10 +45,13 @@ public class MyCamera extends Activity
     private int PreviewSizeHeight= 480;
     private CharSequence[] processingText = {"Process", "Stop Processing"};
     private CharSequence[] startStopText = {"Record","Stop"};
-    public static Queue frameQueue = new LinkedList<byte[]>();
+    public static Queue frameQueue = new LinkedList<>();
+    public static Queue timeStampQueue = new LinkedList<>();
+    public static long startTime = System.currentTimeMillis();
+    public static ArrayList<int[]> motionMap = new ArrayList<>();
 
     private BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
-    private ArrayList<int[]> data;
+//    private ArrayList<int[]> data;
     // Data will be in cm.
     public String address;
     ConnectedThread mConnect;
@@ -78,7 +83,7 @@ public class MyCamera extends Activity
         // second parameter is Queue to process images from
         // third parameter is the button to use to start and stop processing
 
-        //startProcessing(50, frameQueue, (Button) findViewById(R.id.button_processing));
+        startProcessing(2, frameQueue, timeStampQueue, (Button) findViewById(R.id.button_capture));
 
         captureSetup();
 
@@ -112,7 +117,7 @@ public class MyCamera extends Activity
                 public void onClick(View view) {
                     if(startStopButton.getText().equals(startStopText[0])) {
                         startStopButton.setText(startStopText[1]);
-                        long startTime = System.currentTimeMillis();
+                        startTime = System.currentTimeMillis();
                         Log.d("FRAME_CAPTURE", "Frame captured started.");
                         Toast.makeText(MyCamera.this, "Frame capture started.", Toast.LENGTH_SHORT).show();
                         CameraPreview.TakePicture = true;
@@ -144,22 +149,22 @@ public class MyCamera extends Activity
             camPreview.CameraTakePicture(PictureFileName);
         }
     };
-/*
-    private void startProcessing(long pause, Queue frameQueue, final Button processingButton){
-        processingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(processingButton.getText().equals(processingText[0]))
-                    processingButton.setText(processingText[1]);
-                else
-                    processingButton.setText(processingText[0]);
-            }
-        });
-        FrameProcessing processFrames = new FrameProcessing(pause, frameQueue, processingButton);
+
+    private void startProcessing(long pause, Queue frameQueue, Queue timeStampQueue, final Button processingButton){
+//        processingButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(processingButton.getText().equals(processingText[0]))
+//                    processingButton.setText(processingText[1]);
+//                else
+//                    processingButton.setText(processingText[0]);
+//            }
+//        });
+        FrameProcessing processFrames = new FrameProcessing(pause, frameQueue, timeStampQueue, processingButton);
         Thread t = new Thread(processFrames);
         t.start();
     }
-    */
+
 
     // Bluetooth
     public void setBluetooth(View view){
