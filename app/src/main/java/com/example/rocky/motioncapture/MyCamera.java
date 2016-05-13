@@ -5,6 +5,10 @@ package com.example.rocky.motioncapture;
  */
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -23,18 +27,29 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.UUID;
 
 public class MyCamera extends Activity
 {
     private CameraPreview camPreview;
     private FrameLayout mainLayout;
-    private int PreviewSizeWidth = 720;
+    private int PreviewSizeWidth = 640;
     private int PreviewSizeHeight= 480;
     private CharSequence[] processingText = {"Process", "Stop Processing"};
     private CharSequence[] startStopText = {"Record","Stop"};
     public static Queue frameQueue = new LinkedList<byte[]>();
+
+    private BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
+    private ArrayList<int[]> data;
+    // Data will be in cm.
+    public String address;
+    ConnectedThread mConnect;
 
     public static Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -62,7 +77,8 @@ public class MyCamera extends Activity
         // first parameter is sleep time in milliseconds between access to Queue
         // second parameter is Queue to process images from
         // third parameter is the button to use to start and stop processing
-        startProcessing(50, frameQueue, (Button) findViewById(R.id.button_processing));
+
+        //startProcessing(50, frameQueue, (Button) findViewById(R.id.button_processing));
 
         captureSetup();
 
@@ -100,6 +116,10 @@ public class MyCamera extends Activity
                         Log.d("FRAME_CAPTURE", "Frame captured started.");
                         Toast.makeText(MyCamera.this, "Frame capture started.", Toast.LENGTH_SHORT).show();
                         CameraPreview.TakePicture = true;
+
+                        // Add join (?)
+                        // Save data as CSV
+
                     } else {
                         startStopButton.setText(startStopText[0]);
                         CameraPreview.TakePicture = false;
@@ -124,7 +144,7 @@ public class MyCamera extends Activity
             camPreview.CameraTakePicture(PictureFileName);
         }
     };
-
+/*
     private void startProcessing(long pause, Queue frameQueue, final Button processingButton){
         processingButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,5 +158,123 @@ public class MyCamera extends Activity
         FrameProcessing processFrames = new FrameProcessing(pause, frameQueue, processingButton);
         Thread t = new Thread(processFrames);
         t.start();
+    }
+    */
+
+    // Bluetooth
+    public void setBluetooth(View view){
+        Intent intent = new Intent(this, SetUpBluetooth.class);
+        startActivity(intent);
+    }
+
+
+    public void onResume(){
+        super.onResume();
+
+        // Get the address from the intent
+        Intent intent = getIntent();
+        address = intent.getStringExtra(SetUpBluetooth.EXTRA_DEVICE_ADDRESS);
+
+        // Connect the devices
+        if(address != null) {
+            BluetoothDevice device2 = bluetooth.getRemoteDevice(address);
+            //Thread connect = new Thread(new ConnectThread(device2));
+            //connect.start();
+
+            // Test
+            BluetoothSocket mmSocket;
+            BluetoothDevice mmDevice;
+            BluetoothSocket tmp = null;
+            mmDevice = device2;
+
+            // Get a BluetoothSocket to connect with the given BluetoothDevice
+            try {
+                // MY_UUID is the app's UUID string, also used by the server code
+                tmp = device2.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+            } catch (IOException e) {
+            }
+            mmSocket = tmp;
+            bluetooth.cancelDiscovery();
+
+            try {
+                // Connect the device through the socket. This will block
+                // until it succeeds or throws an exception
+                mmSocket.connect();
+                Toast.makeText(getBaseContext(), "Connection successful", Toast.LENGTH_SHORT).show();
+            } catch (IOException connectException) {
+                // Unable to connect; close the socket and get out
+                Toast.makeText(getBaseContext(), "Connection failed", Toast.LENGTH_SHORT).show();
+                try {
+                    mmSocket.close();
+                } catch (IOException closeException) {
+                    Toast.makeText(getBaseContext(), "Socket not closed", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+            mConnect = new ConnectedThread(mmSocket);
+            mConnect.start();
+        }
+    }
+
+    private class ConnectedThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            mmSocket = socket;
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            // Get the input and output streams, using temp objects because
+            // member streams are final
+            try {
+                tmpIn = socket.getInputStream();
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) { }
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+        }
+
+
+        public void run() {
+            byte[] buffer = new byte[1024];  // buffer store for the stream
+            int bytes; // bytes returned from read()
+
+            // Keep listening to the InputStream until an exception occurs
+            while (true) {
+                try {
+                    // Read from the InputStream
+                    bytes = mmInStream.read(buffer);
+                    // Send the obtained bytes to the UI activity
+                    String readMessage = new String(buffer, 0, bytes);
+
+                    // Make any received message stop recoding
+
+                } catch (IOException e) {
+                    break;
+                }
+            }
+        }
+
+        // Call this from the main activity to send data to the remote device
+        public void write(byte[] bytes) {
+            try {
+                mmOutStream.write(bytes);
+            } catch (IOException e) { }
+        }
+
+        // Call this from the main activity to shutdown the connection
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) { }
+        }
+    }
+
+    //Save CSV data
+    private void saveData(){
+        
     }
 }
