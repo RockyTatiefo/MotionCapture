@@ -47,7 +47,7 @@ public class FrameProcessing implements Runnable{
 
     public void processFrame(Bitmap frame){
         //do processing
-        int time = (int) timeStampQueue.poll();
+        int time = Integer.valueOf(timeStampQueue.poll().toString());
         int height = frame.getHeight();
         int width = frame.getWidth();
         int color = 0;
@@ -60,7 +60,12 @@ public class FrameProcessing implements Runnable{
         }
         centroid = centroid(pixelSet);
         Log.d("FRAME_PROCESSING", "Centroid: " + Arrays.toString(centroid));
-        MyCamera.motionMap.add(new int[] {time, centroid[0], centroid[1]});
+        MyCamera.motionMap.add(new String[] {String.valueOf(time), String.valueOf(centroid[0]), String.valueOf(centroid[1])});
+
+        // Send data through bluetooth if available
+        if(MyCamera.mConnect != null)
+            sendData(time, centroid[0], centroid[1]);
+
         if (MyCamera.frameQueue.size() % 20 == 0)
             Log.d("FRAME_PROCESSING", frameQueue.size() + " frames");
         try {
@@ -86,5 +91,12 @@ public class FrameProcessing implements Runnable{
         centroid[1] = centroid[1] / totalPoints;
 
         return new int[] {Math.round(centroid[0]), Math.round(centroid[1])};
+    }
+
+    // Sends data through bluetooth
+    private void sendData(int time, int x, int y){
+
+            byte[] data = {(byte) time, (byte) x, (byte) y};
+            MyCamera.mConnect.write(data);
     }
 }

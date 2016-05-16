@@ -27,7 +27,10 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.opencsv.CSVWriter;
+
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -48,13 +51,12 @@ public class MyCamera extends Activity
     public static Queue frameQueue = new LinkedList<>();
     public static Queue timeStampQueue = new LinkedList<>();
     public static long startTime = System.currentTimeMillis();
-    public static ArrayList<int[]> motionMap = new ArrayList<>();
+    public static ArrayList<String[]> motionMap = new ArrayList<>();
 
     private BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
-//    private ArrayList<int[]> data;
     // Data will be in cm.
     public String address;
-    ConnectedThread mConnect;
+    public static ConnectedThread mConnect = null;
 
     public static Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -122,11 +124,9 @@ public class MyCamera extends Activity
                         Toast.makeText(MyCamera.this, "Frame capture started.", Toast.LENGTH_SHORT).show();
                         CameraPreview.TakePicture = true;
 
-                        // Add join (?)
-                        // Save data as CSV
-
                     } else {
                         startStopButton.setText(startStopText[0]);
+                        saveData();
                         CameraPreview.TakePicture = false;
                     }
                 }
@@ -206,6 +206,9 @@ public class MyCamera extends Activity
                 // until it succeeds or throws an exception
                 mmSocket.connect();
                 Toast.makeText(getBaseContext(), "Connection successful", Toast.LENGTH_SHORT).show();
+
+                mConnect = new ConnectedThread(mmSocket);
+                mConnect.start();
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
                 Toast.makeText(getBaseContext(), "Connection failed", Toast.LENGTH_SHORT).show();
@@ -216,12 +219,11 @@ public class MyCamera extends Activity
                 }
 
             }
-            mConnect = new ConnectedThread(mmSocket);
-            mConnect.start();
+
         }
     }
 
-    private class ConnectedThread extends Thread {
+    public class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
@@ -280,6 +282,33 @@ public class MyCamera extends Activity
 
     //Save CSV data
     private void saveData(){
-        
+        String baseDir = android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
+        String fileName = "TrackingData.csv";
+        String filePath = baseDir + File.separator + fileName;
+
+        FileWriter mFileWriter;
+        File f = new File(filePath );
+        CSVWriter writer;
+// File exist
+        try{
+            if(f.exists() && !f.isDirectory()){
+                mFileWriter = new FileWriter(filePath , true);
+                writer = new CSVWriter(mFileWriter);
+            }
+            else {
+                writer = new CSVWriter(new FileWriter(filePath));
+            }
+
+            writer.writeAll(motionMap);
+
+            writer.close();
+            Toast.makeText(getBaseContext(), "CSV written", Toast.LENGTH_SHORT).show();
+        }
+        catch(IOException e)
+        {
+            Toast.makeText(getBaseContext(), "CSV failed to write", Toast.LENGTH_SHORT).show();
+            System.err.println(e.getMessage());
+        }
+
     }
 }
