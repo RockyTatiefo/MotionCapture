@@ -32,15 +32,22 @@ public class FrameProcessing implements Runnable{
     }
 
     public void run() {
+
         while (true) {
-            if (!frameQueue.isEmpty())
+            if (!frameQueue.isEmpty() && !timeStampQueue.isEmpty())
                 processFrame((Bitmap) frameQueue.poll());
-            try {
-                Thread.sleep(2, 0);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                try {
+                    Thread.sleep(1, 0);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            if(frameQueue.isEmpty() && processingButton.getText().equals("Record"))
+                break;
+
         }
+
+        Log.d("FRAME_PROCESSING", "Done: " + frameQueue.size() + " frames");
+
     }
 
     public void processFrame(Bitmap frame){
@@ -64,7 +71,7 @@ public class FrameProcessing implements Runnable{
         if(MyCamera.mConnect != null)
             sendData(time, centroid[0], centroid[1]);
 
-        if (MyCamera.frameQueue.size() % 20 == 0)
+        if (MyCamera.frameQueue.size() % 5 == 0)
             Log.d("FRAME_PROCESSING", frameQueue.size() + " frames");
         try {
             Thread.sleep(pause, 0);

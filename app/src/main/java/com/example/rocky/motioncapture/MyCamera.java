@@ -50,6 +50,7 @@ public class MyCamera extends Activity
     public static Queue timeStampQueue = new LinkedList<>();
     public static long startTime = System.currentTimeMillis();
     public static ArrayList<String[]> motionMap = new ArrayList<>();
+    Thread t;
 
     private BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
     // Data will be in cm.
@@ -83,7 +84,7 @@ public class MyCamera extends Activity
         // second parameter is Queue to process images from
         // third parameter is the button to use to start and stop processing
 
-        startProcessing(2, frameQueue, timeStampQueue, (Button) findViewById(R.id.button_capture));
+
 
         captureSetup();
 
@@ -121,11 +122,21 @@ public class MyCamera extends Activity
                         Log.d("FRAME_CAPTURE", "Frame captured started.");
                         Toast.makeText(MyCamera.this, "Frame capture started.", Toast.LENGTH_SHORT).show();
                         CameraPreview.TakePicture = true;
+                        startProcessing(1, frameQueue, timeStampQueue, (Button) findViewById(R.id.button_capture));
 
                     } else {
+
                         startStopButton.setText(startStopText[0]);
-                        saveData();
                         CameraPreview.TakePicture = false;
+                      try {
+                           t.join();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        Toast.makeText(MyCamera.this, "Frame processing done", Toast.LENGTH_SHORT).show();
+
+                        saveData();
+
                     }
                 }
             });
@@ -159,7 +170,7 @@ public class MyCamera extends Activity
 //            }
 //        });
         FrameProcessing processFrames = new FrameProcessing(pause, frameQueue, timeStampQueue, processingButton);
-        Thread t = new Thread(processFrames);
+        t = new Thread(processFrames);
         t.start();
     }
 

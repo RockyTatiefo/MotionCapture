@@ -81,11 +81,11 @@ public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCall
                 MyCamera.timeStampQueue.add(System.currentTimeMillis() - MyCamera.startTime);
                 if (MyCamera.frameQueue.size() % 20 == 0)
                     Log.d("FRAME_CAPTURE", MyCamera.frameQueue.size() + " frames");
-//                try {
-//                    Thread.sleep(10, 0);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    Thread.sleep(50, 0);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
