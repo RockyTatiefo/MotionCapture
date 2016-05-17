@@ -51,11 +51,12 @@ public class MyCamera extends Activity
     public static long startTime = System.currentTimeMillis();
     Button startStopButton;
     public static ArrayList<String[]> motionMap = new ArrayList<>();
+    // String so that the CSV writer can write the data to CSV file
 
     Thread t;
+    // Thread for the frame processing
 
     private BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
-    // Data will be in cm.
     public String address;
     public static ConnectedThread mConnect = null;
 
@@ -132,12 +133,14 @@ public class MyCamera extends Activity
                         CameraPreview.TakePicture = false;
                       try {
                            t.join();
+                          // Wait for processing to be done
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                         Toast.makeText(MyCamera.this, "Frame processing done", Toast.LENGTH_SHORT).show();
 
                         saveData();
+                        // Save the data to CSV file
 
                     }
                 }
@@ -234,6 +237,7 @@ public class MyCamera extends Activity
         }
     }
 
+    // Keeps the bluetooth connection going
     public class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;

@@ -41,6 +41,9 @@ public class FrameProcessing implements Runnable{
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
+            // Will break out of loop and end processing if all the frames have been processed and
+            // the frame recording is done.
             if(frameQueue.isEmpty() && processingButton.getText().equals("Record"))
                 break;
 
@@ -50,8 +53,9 @@ public class FrameProcessing implements Runnable{
 
     }
 
+    // Does the frame processing for each frame
     public void processFrame(Bitmap frame){
-        //do processing
+
         int time = Integer.valueOf(timeStampQueue.poll().toString());
         int height = frame.getHeight();
         int width = frame.getWidth();
