@@ -49,7 +49,9 @@ public class MyCamera extends Activity
     public static Queue frameQueue = new LinkedList<>();
     public static Queue timeStampQueue = new LinkedList<>();
     public static long startTime = System.currentTimeMillis();
+    Button startStopButton;
     public static ArrayList<String[]> motionMap = new ArrayList<>();
+
     Thread t;
 
     private BluetoothAdapter bluetooth = BluetoothAdapter.getDefaultAdapter();
@@ -111,7 +113,7 @@ public class MyCamera extends Activity
     }
 
     private void captureSetup() {
-        final Button startStopButton = (Button) findViewById(R.id.button_capture);
+        startStopButton = (Button) findViewById(R.id.button_capture);
         if (startStopButton != null) {
             startStopButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -264,6 +266,30 @@ public class MyCamera extends Activity
                     // Read from the InputStream
                     bytes = mmInStream.read(buffer);
                     // Send the obtained bytes to the UI activity
+                    if(bytes == 1){
+                        if(startStopButton.getText().equals(startStopText[0])) {
+                            startStopButton.setText(startStopText[1]);
+                            startTime = System.currentTimeMillis();
+                            Log.d("FRAME_CAPTURE", "Frame captured started.");
+                            Toast.makeText(MyCamera.this, "Frame capture started.", Toast.LENGTH_SHORT).show();
+                            CameraPreview.TakePicture = true;
+                            startProcessing(1, frameQueue, timeStampQueue, (Button) findViewById(R.id.button_capture));
+
+                        } else {
+
+                            startStopButton.setText(startStopText[0]);
+                            CameraPreview.TakePicture = false;
+                            try {
+                                t.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            Toast.makeText(MyCamera.this, "Frame processing done", Toast.LENGTH_SHORT).show();
+
+                            saveData();
+
+                        }
+                    }
                     String readMessage = new String(buffer, 0, bytes);
 
                     // Make any received message stop recoding
