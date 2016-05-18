@@ -12,8 +12,9 @@ import java.util.Iterator;
 import java.util.Queue;
 
 /**
- * Created by V on 5/8/2016.
+ * Made by Rocky Tatiefo and Vinay Putreddy
  */
+
 public class FrameProcessing implements Runnable{
 
     //pause time in millis+

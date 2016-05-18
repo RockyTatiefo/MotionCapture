@@ -1,7 +1,7 @@
 package com.example.rocky.motioncapture;
 
 /**
- * Created by V on 5/8/2016.
+ * Made by Rocky Tatiefo and Vinay Putreddi
  */
 
 import android.app.Activity;
@@ -211,6 +211,7 @@ public class MyCamera extends Activity
                 // MY_UUID is the app's UUID string, also used by the server code
                 tmp = device2.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
             } catch (IOException e) {
+                System.err.println(e.getMessage());
             }
             mmSocket = tmp;
             bluetooth.cancelDiscovery();
@@ -226,10 +227,12 @@ public class MyCamera extends Activity
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
                 Toast.makeText(getBaseContext(), "Connection failed", Toast.LENGTH_SHORT).show();
+                System.err.println(connectException.getMessage());
                 try {
                     mmSocket.close();
                 } catch (IOException closeException) {
                     Toast.makeText(getBaseContext(), "Socket not closed", Toast.LENGTH_SHORT).show();
+                    System.err.println(closeException.getMessage());
                 }
 
             }

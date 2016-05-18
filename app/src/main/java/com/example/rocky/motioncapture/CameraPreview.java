@@ -26,7 +26,7 @@ import android.hardware.Camera.ShutterCallback;
 import android.widget.Toast;
 
 /**
- * Created by V on 5/8/2016.
+ * Made by Rocky Tatiefo and Vinay Putreddy
  */
 public class CameraPreview implements SurfaceHolder.Callback, Camera.PreviewCallback
 {
